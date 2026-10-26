@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="id" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Lab Maya IPAS Class 5 - Kenampakan Alam Bumi</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            earth: '#059669',
+                            water: '#0284C7',
+                            sky: '#38BDF8',
+                            amber: '#F59E0B',
+                            purple: '#8B5CF6',
+                            rose: '#E11D48',
+                            dark: '#0F172A'
+                        }
+                    },
+                    fontFamily: {
+                        fredoka: ['Fredoka', 'sans-serif'],
+                        nunito: ['Nunito', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Nunito', sans-serif;
+            touch-action: manipulation;
+            user-select: none;
+            -webkit-user-select: none;
+            overflow: hidden;
+        }
+        h1, h2, h3, .font-heading {
+            font-family: 'Fredoka', sans-serif;
+        }
+        /* Custom styling & animations */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(12px);
+            border: 2px solid rgba(255, 255, 255, 0.6);
+        }
+        .btn-bounce {
+            transition: transform 0.1s ease, box-shadow 0.1s ease;
+        }
+        .btn-bounce:active {
+            transform: scale(0.95);
+        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.05);
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(16, 185, 129, 0.5);
+            border-radius: 10px;
+        }
+        /* Item Card Drag Style */
+        .item-card {
+            cursor: grab;
+            transition: all 0.2s ease;
+        }
+        .item-card:active {
+            cursor: grabbing;
+            transform: scale(1.05);
+        }
+        .drop-zone {
+            transition: all 0.25s ease;
+        }
+        .drop-zone.drag-over {
+            background-color: rgba(253, 230, 138, 0.4);
+            border-color: #F59E0B;
+            transform: scale(1.01);
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-emerald-600 via-teal-700 to-sky-800 h-screen w-screen overflow-hidden flex flex-col justify-center items-center p-1 md:p-3 text-slate-800">
+
+    <!-- MAIN CONTAINER (16:9 ASPECT RATIO LOOK) -->
+    <div id="app-container" class="w-full max-w-6xl h-full max-h-[96vh] aspect-[16/9] bg-slate-50 rounded-2xl md:rounded-3xl shadow-2xl overflow-hidden flex flex-col relative border-4 border-white/70">
+
+        <!-- ================= SPLASH SCREEN ================= -->
+        <div id="splash-screen" class="absolute inset-0 z-50 bg-gradient-to-br from-emerald-600 via-teal-700 to-sky-900 flex flex-col items-center justify-between p-6 text-white text-center">
+            <div class="mt-4 animate-bounce">
+                <span class="inline-block p-4 bg-white/20 rounded-full backdrop-blur-md mb-2 shadow-inner">
+                    <i class="fa-solid fa-earth-americas text-emerald-300 text-5xl md:text-6xl drop-shadow"></i>
+                </span>
+            </div>
+
+            <div class="max-w-xl my-auto">
+                <div class="inline-block px-4 py-1 bg-amber-400 text-slate-900 rounded-full font-bold text-xs md:text-sm tracking-wide mb-2 uppercase shadow-md">
+                    SD Negeri Nyanglan • Fase C Kelas 5
+                </div>
+                <h1 class="text-2xl md:text-4xl font-extrabold tracking-wide drop-shadow-md text-white mb-1">
+                    LAB MAYA INTERAKTIF IPAS
+                </h1>
+                <h2 class="text-lg md:text-2xl font-bold text-teal-200 mb-4">
+                    Kenampakan Alam Bumi: Litosfer, Hidrosfer, & Atmosfer
+                </h2>
+                <div class="text-xs md:text-sm bg-white/10 p-3 rounded-xl backdrop-blur-sm border border-white/20 text-teal-100">
+                    Pengembang: <span class="font-bold text-white">I Wayan Wija Astawa, S.Pd.</span>
+                </div>
+            </div>
+
+            <!-- Loading Bar & Start Button -->
+            <div class="w-full max-w-md mb-4 flex flex-col items-center">
+                <div id="loading-box" class="w-full">
+                    <div class="flex justify-between text-xs font-semibold mb-1 text-teal-100">
+                        <span>Memuat Modul IPAS & Web Audio...</span>
+                        <span id="load-percent">0%</span>
+                    </div>
+                    <div class="w-full bg-teal-950/60 rounded-full h-3 p-0.5 overflow-hidden">
+                        <div id="load-bar" class="bg-gradient-to-r from-amber-400 via-emerald-400 to-sky-400 h-full rounded-full w-0 transition-all duration-300"></div>
+                    </div>
+                </div>
+
+                <button id="btn-start" onclick="startApp()" class="hidden w-full py-3 md:py-4 px-8 bg-gradient-to-r from-amber-400 to-yellow-500 hover:from-amber-300 hover:to-yellow-400 text-slate-900 font-extrabold text-lg md:text-xl rounded-2xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition active:scale-95 btn-bounce flex items-center justify-center gap-3">
+                    <i class="fa-solid fa-play"></i> MULAI EKSPERIMEN
+                </button>
+            </div>
+        </div>
+
+        <!-- ================= HEADER / NAVBAR ================= -->
+        <header class="bg-gradient-to-r from-slate-900 via-teal-950 to-slate-900 text-white px-3 md:px-5 py-2 flex items-center justify-between shrink-0 border-b border-teal-800/50">
+            <!-- Logo & Title -->
+            <div class="flex items-center gap-2">
+                <div class="w-8 h-8 md:w-10 md:h-10 bg-gradient-to-tr from-emerald-400 to-teal-600 rounded-xl flex items-center justify-center shadow">
+                    <i class="fa-solid fa-globe text-white text-base md:text-lg"></i>
+                </div>
+                <div>
+                    <h1 class="text-xs md:text-base font-bold leading-tight text-white">LAB MAYA BUMI</h1>
+                    <p class="text-[10px] md:text-xs text-teal-300">IPAS Class 5 SD Negeri Nyanglan</p>
+                </div>
+            </div>
+
+            <!-- Tab Navigation Buttons -->
+            <nav class="flex items-center bg-slate-800/90 p-1 rounded-xl border border-slate-700/60 text-xs md:text-sm">
+                <button onclick="switchTab('teori')" id="tab-teori" class="nav-tab px-2 md:px-4 py-1.5 rounded-lg font-bold transition flex items-center gap-1.5 text-slate-300 hover:text-white">
+                    <i class="fa-solid fa-book-open text-emerald-400"></i><span class="hidden sm:inline">Teori</span>
+                </button>
+                <button onclick="switchTab('prosedur')" id="tab-prosedur" class="nav-tab px-2 md:px-4 py-1.5 rounded-lg font-bold transition flex items-center gap-1.5 text-slate-300 hover:text-white">
+                    <i class="fa-solid fa-list-check text-amber-400"></i><span class="hidden sm:inline">Prosedur</span>
+                </button>
+                <button onclick="switchTab('simulasi')" id="tab-simulasi" class="nav-tab active px-2 md:px-4 py-1.5 rounded-lg font-bold transition flex items-center gap-1.5 bg-emerald-500 text-slate-950 shadow">
+                    <i class="fa-solid fa-flask text-white"></i><span>Simulasi</span>
+                </button>
+                <button onclick="switchTab('lkpd')" id="tab-lkpd" class="nav-tab px-2 md:px-4 py-1.5 rounded-lg font-bold transition flex items-center gap-1.5 text-slate-300 hover:text-white">
+                    <i class="fa-solid fa-file-pen text-sky-400"></i><span class="hidden sm:inline">LKPD</span>
+                </button>
+                <button onclick="switchTab('pengembang')" id="tab-pengembang" class="nav-tab px-2 md:px-4 py-1.5 rounded-lg font-bold transition flex items-center gap-1.5 text-slate-300 hover:text-white">
+                    <i class="fa-solid fa-user-gear text-purple-400"></i><span class="hidden sm:inline">Profil</span>
+                </button>
+            </nav>
+
+            <!-- Audio Control Button -->
+            <div class="flex items-center gap-2">
+                <button id="btn-sound" onclick="toggleAudio()" class="w-8 h-8 md:w-9 md:h-9 bg-slate-800 hover:bg-slate-700 text-amber-400 rounded-xl flex items-center justify-center border border-slate-700 transition btn-bounce" title="Audio Toggle">
+                    <i id="sound-icon" class="fa-solid fa-volume-high"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- ================= CONTENT MAIN AREA ================= -->
+        <main class="flex-1 bg-slate-100 overflow-hidden relative p-2 md:p-4">
+
+            <!-- TAB 1: TEORI -->
+            <section id="content-teori" class="tab-content hidden h-full overflow-y-auto pr-1">
+                <div class="max-w-4xl mx-auto space-y-4 text-slate-700 text-xs md:text-sm">
+                    <!-- Litosfer -->
+                    <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
+                        <h2 class="text-base md:text-lg font-bold text-emerald-700 flex items-center gap-2 mb-2">
+                            <i class="fa-solid fa-mountain text-emerald-600"></i> 1. Komponen Litosfer (Lapisan Daratan / Kerak Bumi)
+                        </h2>
+                        <p class="leading-relaxed text-slate-600 mb-2">
+                            <b>Litosfer</b> berasal dari kata <i>lithos</i> (batuan) dan <i>sphere</i> (lapisan). Litosfer adalah lapisan batuan padat yang membentuk kerak luar Bumi tempat manusia dan makhluk hidup tinggal.
+                        </p>
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                            <div class="p-2 bg-emerald-50 rounded-xl border border-emerald-100 text-center">
+                                <b class="text-emerald-800 block text-xs">Gunung & Bukit</b>
+                                <span class="text-[11px] text-slate-500">Tonjolan tinggi permukaan bumi</span>
+                            </div>
+                            <div class="p-2 bg-emerald-50 rounded-xl border border-emerald-100 text-center">
+                                <b class="text-emerald-800 block text-xs">Lembah</b>
+                                <span class="text-[11px] text-slate-500">Dataran rendah di antara gunung</span>
+                            </div>
+                            <div class="p-2 bg-emerald-50 rounded-xl border border-emerald-100 text-center">
+                                <b class="text-emerald-800 block text-xs">Dataran Tinggi</b>
+                                <span class="text-[11px] text-slate-500">Wilayah datar di ketinggian</span>
+                            </div>
+                            <div class="p-2 bg-emerald-50 rounded-xl border border-emerald-100 text-center">
+                                <b class="text-emerald-800 block text-xs">Kerak Batuan</b>
+                                <span class="text-[11px] text-slate-500">Lapisan terluar bumi</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Hidrosfer -->
+                    <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
+                        <h2 class="text-base md:text-lg font-bold text-sky-700 flex items-center gap-2 mb-2">
+                            <i class="fa-solid fa-water text-sky-500"></i> 2. Komponen Hidrosfer (Lapisan Perairan Bumi)
+                        </h2>
+                        <p class="leading-relaxed text-slate-600 mb-2">
+                            <b>Hidrosfer</b> mencakup seluruh air yang ada di permukaan Bumi, baik cair, padat (es/gletser), maupun gas (uap air). Sekitar 71% permukaan bumi tertutup oleh air!
+                        </p>
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                            <div class="p-2 bg-sky-50 rounded-xl border border-sky-100 text-center">
+                                <b class="text-sky-800 block text-xs">Samudra & Laut</b>
+                                <span class="text-[11px] text-slate-500">Air asin terbesar di bumi</span>
+                            </div>
+                            <div class="p-2 bg-sky-50 rounded-xl border border-sky-100 text-center">
+                                <b class="text-sky-800 block text-xs">Danau & Sungai</b>
+                                <span class="text-[11px] text-slate-500">Air tawar mengalir & tergenang</span>
+                            </div>
+                            <div class="p-2 bg-sky-50 rounded-xl border border-sky-100 text-center">
+                                <b class="text-sky-800 block text-xs">Rawa</b>
+                                <span class="text-[11px] text-slate-500">Lahan basah tergenang air</span>
+                            </div>
+                            <div class="p-2 bg-sky-50 rounded-xl border border-sky-100 text-center">
+                                <b class="text-sky-800 block text-xs">Gletser</b>
+                                <span class="text-[11px] text-slate-500">Massa es abadi di kutub/puncak</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Atmosfer -->
+                    <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
+                        <h2 class="text-base md:text-lg font-bold text-purple-700 flex items-center gap-2 mb-2">
+                            <i class="fa-solid fa-cloud text-purple-500"></i> 3. Lapisan Atmosfer Bumi (Lapisan Udara)
+                        </h2>
+                        <p class="leading-relaxed text-slate-600 mb-2">
+                            <b>Atmosfer</b> adalah lapisan gas penjelimut bumi yang melindungi dari radiasi berbahaya matahari dan benda luar angkasa. Terdiri dari 5 lapisan utama dari bawah ke atas:
+                        </p>
+                        <div class="space-y-1.5 text-xs">
+                            <div class="p-2 bg-slate-50 rounded-lg border flex justify-between items-center">
+                                <b>1. Troposfer (0 - 12 km)</b>
+                                <span class="text-slate-500">Tempat terjadinya cuaca, hujan, awan, & bernapas.</span>
+                            </div>
+                            <div class="p-2 bg-slate-50 rounded-lg border flex justify-between items-center">
+                                <b>2. Stratosfer (12 - 50 km)</b>
+                                <span class="text-slate-500">Terdapat lapisan Ozon penyerap sinar UV & jalur pesawat.</span>
+                            </div>
+                            <div class="p-2 bg-slate-50 rounded-lg border flex justify-between items-center">
+                                <b>3. Mesosfer (50 - 85 km)</b>
+                                <span class="text-slate-500">Lapisan dingin tempat membakarnya meteor berbahaya.</span>
+                            </div>
+                            <div class="p-2 bg-slate-50 rounded-lg border flex justify-between items-center">
+                                <b>4. Termosfer (85 - 600 km)</b>
+                                <span class="text-slate-500">Tempat terjadinya Aurora & pantulan gelombang radio.</span>
+                            </div>
+                            <div class="p-2 bg-slate-50 rounded-lg border flex justify-between items-center">
+                                <b>5. Eksosfer (> 600 km)</b>
+                                <span class="text-slate-500">Lapisan terluar yang berbatasan langsung dengan luar angkasa.</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 2: PROSEDUR -->
+            <section id="content-prosedur" class="tab-content hidden h-full overflow-y-auto pr-1">
+                <div class="max-w-3xl mx-auto bg-white p-5 rounded-2xl shadow-sm border border-slate-200 space-y-4 text-xs md:text-sm">
+                    <h2 class="text-lg font-bold text-amber-600 flex items-center gap-2 border-b pb-2">
+                        <i class="fa-solid fa-list-check"></i> Petunjuk Penggunaan Simulasi Interaktif
+                    </h2>
+
+                    <div class="flex items-start gap-3 p-3 bg-amber-50 rounded-xl border border-amber-200">
+                        <div class="w-7 h-7 bg-amber-500 text-white rounded-full flex items-center justify-center font-bold shrink-0">1</div>
+                        <div>
+                            <b class="text-slate-800">Bagian A: Pengelompokan Litosfer vs Hidrosfer</b>
+                            <p class="text-slate-600">Klik/Drag kartu nama kenampakan alam (contoh: Gunung Batur, Danau Batur, Sungai Ayung) lalu masukkan ke dalam kotak kategori <b>Litosfer (Daratan)</b> atau <b>Hidrosfer (Perairan)</b> yang tepat.</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start gap-3 p-3 bg-sky-50 rounded-xl border border-sky-200">
+                        <div class="w-7 h-7 bg-sky-500 text-white rounded-full flex items-center justify-center font-bold shrink-0">2</div>
+                        <div>
+                            <b class="text-slate-800">Bagian B: Urutan Lapisan Atmosfer</b>
+                            <p class="text-slate-600">Pilih sub-tab Atmosfer, lalu urutkan nama-nama lapisan atmosfer bumi dari yang paling dekat permukaan bumi (bawah) hingga yang paling luar (atas).</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start gap-3 p-3 bg-emerald-50 rounded-xl border border-emerald-200">
+                        <div class="w-7 h-7 bg-emerald-500 text-white rounded-full flex items-center justify-center font-bold shrink-0">3</div>
+                        <div>
+                            <b class="text-slate-800">Cek Jawaban & Reset</b>
+                            <p class="text-slate-600">Gunakan tombol <b>"Cek Jawaban"</b> untuk memeriksa kebenaran hasil susunanmu, atau tombol <b>"Reset"</b> untuk mencoba mengacak kembali!</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 3: SIMULASI INTERAKTIF (UTAMA) -->
+            <section id="content-simulasi" class="tab-content h-full flex flex-col">
+                <!-- Sub Tab Navigasi Simulasi -->
+                <div class="flex items-center justify-center gap-2 mb-2 shrink-0">
+                    <button onclick="switchSimSubTab('grouping')" id="subtab-grouping" class="sim-subtab px-3 py-1.5 rounded-xl font-bold text-xs md:text-sm bg-emerald-500 text-white shadow transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-shapes"></i> Bagian A: Litosfer & Hidrosfer
+                    </button>
+                    <button onclick="switchSimSubTab('atmosfer')" id="subtab-atmosfer" class="sim-subtab px-3 py-1.5 rounded-xl font-bold text-xs md:text-sm bg-slate-200 text-slate-700 hover:bg-slate-300 transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-layer-group"></i> Bagian B: Lapisan Atmosfer
+                    </button>
+                </div>
+
+                <!-- SIMULASI BAGIAN A: GROUPING LITOSFER VS HIDROSFER -->
+                <div id="sim-section-grouping" class="sim-display flex-1 bg-slate-900 rounded-2xl p-3 flex flex-col justify-between overflow-hidden border border-slate-700 relative">
+                    
+                    <!-- Area Kartu Pilihan Kenampakan Alam -->
+                    <div class="bg-slate-800/90 p-2.5 rounded-xl border border-slate-700/80 mb-2">
+                        <div class="flex justify-between items-center mb-1.5">
+                            <span class="text-xs font-bold text-amber-400 uppercase tracking-wide">
+                                <i class="fa-solid fa-hand-pointer"></i> Klik atau Seret (Drag) Benda ke Kategori yang Benar:
+                            </span>
+                            <span id="grouping-count" class="text-xs text-slate-300">Tersisa: <b class="text-amber-400">8</b> Benda</span>
+                        </div>
+                        <div id="item-pool" class="flex flex-wrap gap-2 min-h-[50px] items-center justify-center p-1">
+                            <!-- Items generated dynamically via JavaScript -->
+                        </div>
+                    </div>
+
+                    <!-- Area 2 Box Kategori (Dropzones) -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 flex-1 overflow-hidden">
+                        <!-- BOX LITOSFER -->
+                        <div id="zone-litosfer" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="handleDrop(event, 'litosfer')" onclick="clickZoneToMove('litosfer')" class="drop-zone bg-gradient-to-b from-emerald-950/80 to-slate-900 border-2 border-dashed border-emerald-500/60 rounded-xl p-3 flex flex-col justify-start relative overflow-y-auto">
+                            <div class="flex items-center justify-between border-b border-emerald-500/40 pb-1.5 mb-2 shrink-0">
+                                <span class="font-bold text-sm text-emerald-400 flex items-center gap-2">
+                                    <i class="fa-solid fa-mountain text-base"></i> KOMPONEN LITOSFER (Daratan)
+                                </span>
+                                <span id="badge-litosfer" class="text-[10px] bg-emerald-900 text-emerald-300 px-2 py-0.5 rounded-full font-bold">0 Item</span>
+                            </div>
+                            <div id="box-litosfer-items" class="flex flex-wrap gap-2 content-start flex-1 min-h-[80px]">
+                                <!-- Dropped items go here -->
+                            </div>
+                        </div>
+
+                        <!-- BOX HIDROSFER -->
+                        <div id="zone-hidrosfer" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="handleDrop(event, 'hidrosfer')" onclick="clickZoneToMove('hidrosfer')" class="drop-zone bg-gradient-to-b from-sky-950/80 to-slate-900 border-2 border-dashed border-sky-500/60 rounded-xl p-3 flex flex-col justify-start relative overflow-y-auto">
+                            <div class="flex items-center justify-between border-b border-sky-500/40 pb-1.5 mb-2 shrink-0">
+                                <span class="font-bold text-sm text-sky-400 flex items-center gap-2">
+                                    <i class="fa-solid fa-water text-base"></i> KOMPONEN HIDROSFER (Perairan)
+                                </span>
+                                <span id="badge-hidrosfer" class="text-[10px] bg-sky-900 text-sky-300 px-2 py-0.5 rounded-full font-bold">0 Item</span>
+                            </div>
+                            <div id="box-hidrosfer-items" class="flex flex-wrap gap-2 content-start flex-1 min-h-[80px]">
+                                <!-- Dropped items go here -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bottom Controls Grouping -->
+                    <div class="flex items-center justify-between pt-2 border-t border-slate-800 shrink-0 mt-2">
+                        <button onclick="resetGroupingSim()" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs font-bold rounded-lg transition btn-bounce flex items-center gap-1.5">
+                            <i class="fa-solid fa-rotate-left"></i> Reset
+                        </button>
+                        <button onclick="checkGroupingResult()" class="px-5 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-extrabold text-xs md:text-sm rounded-xl shadow transition btn-bounce flex items-center gap-2">
+                            <i class="fa-solid fa-circle-check"></i> Cek Jawaban Bagian A
+                        </button>
+                    </div>
+                </div>
+
+                <!-- SIMULASI BAGIAN B: MENGURUTKAN LAPISAN ATMOSFER -->
+                <div id="sim-section-atmosfer" class="sim-display hidden flex-1 bg-slate-900 rounded-2xl p-3 flex flex-col justify-between overflow-hidden border border-slate-700">
+                    <div class="flex-1 grid grid-cols-1 md:grid-cols-12 gap-3 overflow-hidden">
+                        
+                        <!-- Kolom Kiri: Visual Atmosfer & Slot Urutan -->
+                        <div class="md:col-span-7 bg-slate-950 rounded-xl p-3 border border-slate-800 flex flex-col justify-between overflow-y-auto">
+                            <div class="text-xs font-bold text-sky-400 flex justify-between items-center border-b border-slate-800 pb-1 mb-2">
+                                <span><i class="fa-solid fa-layer-group"></i> Susun Lapisan Dari Bawah (Bumi) ke Atas:</span>
+                                <span class="text-[10px] text-slate-400">Atmosfer Bumi</span>
+                            </div>
+
+                            <!-- 5 Slots for Atmosfer Layers (Eksosfer at top to Troposfer at bottom) -->
+                            <div class="space-y-1.5 flex-1 flex flex-col justify-center">
+                                <!-- Slot 5: Top (Eksosfer) -->
+                                <div id="atmo-slot-5" class="atmo-slot p-2 rounded-lg border-2 border-dashed border-purple-500/50 bg-purple-950/20 flex items-center justify-between text-xs transition" onclick="selectSlotForAtmo(5)">
+                                    <span class="font-bold text-purple-300">5. Lapisan Paling Luar (> 600 km):</span>
+                                    <div id="slot-content-5" class="slot-target font-bold text-white bg-slate-800 px-3 py-1 rounded border border-slate-700 min-w-[140px] text-center">Kosong</div>
+                                </div>
+                                <!-- Slot 4: Termosfer -->
+                                <div id="atmo-slot-4" class="atmo-slot p-2 rounded-lg border-2 border-dashed border-indigo-500/50 bg-indigo-950/20 flex items-center justify-between text-xs transition" onclick="selectSlotForAtmo(4)">
+                                    <span class="font-bold text-indigo-300">4. Lapisan Aurora (85-600 km):</span>
+                                    <div id="slot-content-4" class="slot-target font-bold text-white bg-slate-800 px-3 py-1 rounded border border-slate-700 min-w-[140px] text-center">Kosong</div>
+                                </div>
+                                <!-- Slot 3: Mesosfer -->
+                                <div id="atmo-slot-3" class="atmo-slot p-2 rounded-lg border-2 border-dashed border-blue-500/50 bg-blue-950/20 flex items-center justify-between text-xs transition" onclick="selectSlotForAtmo(3)">
+                                    <span class="font-bold text-blue-300">3. Pembakar Meteor (50-85 km):</span>
+                                    <div id="slot-content-3" class="slot-target font-bold text-white bg-slate-800 px-3 py-1 rounded border border-slate-700 min-w-[140px] text-center">Kosong</div>
+                                </div>
+                                <!-- Slot 2: Stratosfer -->
+                                <div id="atmo-slot-2" class="atmo-slot p-2 rounded-lg border-2 border-dashed border-teal-500/50 bg-teal-950/20 flex items-center justify-between text-xs transition" onclick="selectSlotForAtmo(2)">
+                                    <span class="font-bold text-teal-300">2. Lapisan Ozon (12-50 km):</span>
+                                    <div id="slot-content-2" class="slot-target font-bold text-white bg-slate-800 px-3 py-1 rounded border border-slate-700 min-w-[140px] text-center">Kosong</div>
+                                </div>
+                                <!-- Slot 1: Bottom (Troposfer) -->
+                                <div id="atmo-slot-1" class="atmo-slot p-2 rounded-lg border-2 border-dashed border-emerald-500/50 bg-emerald-950/20 flex items-center justify-between text-xs transition" onclick="selectSlotForAtmo(1)">
+                                    <span class="font-bold text-emerald-300">1. Dekat Bumi / Cuaca (0-12 km):</span>
+                                    <div id="slot-content-1" class="slot-target font-bold text-white bg-slate-800 px-3 py-1 rounded border border-slate-700 min-w-[140px] text-center">Kosong</div>
+                                </div>
+                            </div>
+
+                            <!-- Visual Permukaan Bumi Bottom Indicator -->
+                            <div class="mt-2 py-1 px-3 bg-emerald-800 rounded-lg text-center text-white text-[11px] font-bold flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-earth-asia"></i> Permukaan Bumi (Tempat Kita Tinggal)
+                            </div>
+                        </div>
+
+                        <!-- Kolom Kanan: Pilihan Lapisan -->
+                        <div class="md:col-span-5 bg-slate-800 rounded-xl p-3 border border-slate-700 flex flex-col justify-between overflow-y-auto">
+                            <div>
+                                <h3 class="font-bold text-xs text-amber-400 uppercase tracking-wide mb-2">
+                                    Pilihan Lapisan Atmosfer:
+                                </h3>
+                                <p class="text-[11px] text-slate-300 mb-3">Klik salah satu nama lapisan di bawah untuk memasukkannya ke slot urutan yang aktif:</p>
+                                <div id="atmo-options-container" class="space-y-2">
+                                    <!-- Dynamic layer options -->
+                                </div>
+                            </div>
+
+                            <div class="p-2.5 bg-slate-900 rounded-xl border border-slate-700 text-[11px] text-slate-300">
+                                <i class="fa-solid fa-circle-info text-amber-400"></i> Petunjuk: Troposfer berada paling dekat dengan bumi, sedangkan Eksosfer paling jauh.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bottom Controls Atmosfer -->
+                    <div class="flex items-center justify-between pt-2 border-t border-slate-800 shrink-0 mt-2">
+                        <button onclick="resetAtmoSim()" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs font-bold rounded-lg transition btn-bounce flex items-center gap-1.5">
+                            <i class="fa-solid fa-rotate-left"></i> Reset
+                        </button>
+                        <button onclick="checkAtmoResult()" class="px-5 py-2 bg-gradient-to-r from-sky-500 to-indigo-500 hover:from-sky-400 hover:to-indigo-400 text-white font-extrabold text-xs md:text-sm rounded-xl shadow transition btn-bounce flex items-center gap-2">
+                            <i class="fa-solid fa-circle-check"></i> Cek Jawaban Bagian B
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 4: LKPD (LEMBAR KERJA PESERTA DIDIK) -->
+            <section id="content-lkpd" class="tab-content hidden h-full overflow-y-auto pr-1">
+                <div class="max-w-3xl mx-auto bg-white p-4 md:p-6 rounded-2xl shadow-sm border border-slate-200 space-y-5">
+                    <div class="border-b pb-3 flex justify-between items-center">
+                        <div>
+                            <h2 class="text-lg md:text-xl font-bold text-slate-800">LKPD Interaktif - Evaluasi IPAS Kelas 5</h2>
+                            <p class="text-xs text-slate-500">Jawablah pertanyaan berikut untuk menguji pemahamanmu!</p>
+                        </div>
+                        <span id="score-badge" class="hidden px-3 py-1 bg-emerald-100 text-emerald-800 font-bold rounded-full text-xs md:text-sm">
+                            Skor: <span id="score-val">0</span> / 100
+                        </span>
+                    </div>
+
+                    <form id="lkpd-form" class="space-y-4 text-xs md:text-sm text-slate-700">
+                        <!-- Soal 1 -->
+                        <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
+                            <p class="font-bold text-slate-800 mb-2">1. Danau Batur dan Sungai Ayung yang ada di Bali merupakan bagian dari komponen bumi yaitu...</p>
+                            <div class="space-y-1.5 pl-2">
+                                <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="q1" value="A" class="accent-emerald-600"> A. Litosfer</label>
+                                <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="q1" value="B" class="accent-emerald-600"> B. Hidrosfer</label>
+                                <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="q1" value="C" class="accent-emerald-600"> C. Atmosfer</label>
+                            </div>
+                        </div>
+
+                        <!-- Soal 2 -->
+                        <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
+                            <p class="font-bold text-slate-800 mb-2">2. Lapisan atmosfer tempat terjadinya fenomena cuaca seperti hujan, angin, dan pembentukan awan adalah...</p>
+                            <div class="space-y-1.5 pl-2">
+                                <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="q2" value="A" class="accent-emerald-600"> A. Stratosfer</label>
+                                <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="q2" value="B" class="accent-emerald-600"> B. Troposfer</label>
+                                <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="q2" value="C" class="accent-emerald-600"> C. Eksosfer</label>
+                            </div>
+                        </div>
+
+                        <!-- Soal 3 -->
+                        <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
+                            <p class="font-bold text-slate-800 mb-2">3. Lapisan ozon yang melindungi bumi dari paparan sinar ultraviolet (UV) berbahaya terletak pada lapisan...</p>
+                            <div class="space-y-1.5 pl-2">
+                                <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="q3" value="A" class="accent-emerald-600"> A. Stratosfer</label>
+                                <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="q3" value="B" class="accent-emerald-600"> B. Mesosfer</label>
+                                <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="q3" value="C" class="accent-emerald-600"> C. Termosfer</label>
+                            </div>
+                        </div>
+
+                        <!-- Soal 4 -->
+                        <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
+                            <p class="font-bold text-slate-800 mb-2">4. Bentuk kenampakan alam daratan berupa tonjolan tinggi di permukaan bumi disebut...</p>
+                            <div class="space-y-1.5 pl-2">
+                                <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="q4" value="A" class="accent-emerald-600"> A. Samudra</label>
+                                <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="q4" value="B" class="accent-emerald-600"> B. Gunung / Bukit</label>
+                                <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="q4" value="C" class="accent-emerald-600"> C. Gletser</label>
+                            </div>
+                        </div>
+
+                        <div class="pt-2 flex gap-3">
+                            <button type="button" onclick="checkLKPDAnswer()" class="flex-1 py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl shadow transition btn-bounce flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-check-double"></i> Cek & Periksa Jawaban
+                            </button>
+                            <button type="button" onclick="resetLKPD()" class="py-3 px-5 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-xl transition btn-bounce">
+                                Reset LKPD
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </section>
+
+            <!-- TAB 5: PENGEMBANG -->
+            <section id="content-pengembang" class="tab-content hidden h-full overflow-y-auto pr-1">
+                <div class="max-w-2xl mx-auto bg-white p-6 rounded-2xl shadow-sm border border-slate-200 text-center space-y-4 text-xs md:text-sm">
+                    <div class="w-20 h-20 bg-gradient-to-tr from-emerald-500 to-teal-600 rounded-full mx-auto flex items-center justify-center text-white text-3xl font-bold shadow-lg border-4 border-emerald-100">
+                        WA
+                    </div>
+                    
+                    <div>
+                        <h2 class="text-xl font-extrabold text-slate-800">I Wayan Wija Astawa, S.Pd.</h2>
+                        <p class="text-emerald-600 font-bold">Pengembang Laboratorium Maya Interaktif IPAS</p>
+                        <p class="text-slate-500">SD Negeri Nyanglan</p>
+                    </div>
+
+                    <div class="p-4 bg-emerald-50 rounded-2xl border border-emerald-100 text-left space-y-2 text-slate-700">
+                        <h3 class="font-bold text-emerald-900 border-b border-emerald-200 pb-1">Visi Pengembangan:</h3>
+                        <p class="leading-relaxed">
+                            "Mewujudkan media pembelajaran IPAS yang interaktif, visual, dan menyenangkan bagi siswa SD Negeri Nyanglan (Fase C Kelas 5) agar mampu memahami struktur dan kenampakan alam Bumi secara kontekstual melalui simulasi eksperimen digital."
+                        </p>
+                    </div>
+
+                    <div class="text-xs text-slate-400 pt-2 border-t">
+                        Laboratorium Maya IPAS SD Negeri Nyanglan • Capaian Pembelajaran Fase C
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- ================= JAVASCRIPT LOGIC ================= -->
+    <script>
+        /* ----------------------------------------------------
+         * AUDIO SYNTHESIZER (Web Audio API - Full Offline SFX)
+         * ---------------------------------------------------- */
+        let audioCtx = null;
+        let isSoundOn = true;
+
+        function initAudio() {
+            if (!audioCtx) {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                audioCtx = new AudioContext();
+            }
+        }
+
+        function playTone(freq, type = 'sine', duration = 0.12, gainVal = 0.1) {
+            if (!isSoundOn || !audioCtx) return;
+            try {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                gain.gain.setValueAtTime(gainVal, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + duration);
+            } catch (e) { console.log(e); }
+        }
+
+        function playSoundClick() { playTone(550, 'sine', 0.08, 0.1); }
+        function playSoundDrop() { playTone(400, 'triangle', 0.1, 0.12); }
+        function playSoundReset() {
+            if (!isSoundOn || !audioCtx) return;
+            playTone(350, 'triangle', 0.1, 0.12);
+            setTimeout(() => playTone(250, 'triangle', 0.15, 0.12), 80);
+        }
+        function playSoundSuccess() {
+            if (!isSoundOn || !audioCtx) return;
+            [523.25, 659.25, 783.99, 1046.50].forEach((freq, idx) => {
+                setTimeout(() => playTone(freq, 'sine', 0.18, 0.15), idx * 90);
+            });
+        }
+        function playSoundError() {
+            if (!isSoundOn || !audioCtx) return;
+            playTone(200, 'sawtooth', 0.2, 0.15);
+        }
+
+        function toggleAudio() {
+            isSoundOn = !isSoundOn;
+            const icon = document.getElementById('sound-icon');
+            if (isSoundOn) {
+                icon.className = "fa-solid fa-volume-high";
+                playSoundClick();
+            } else {
+                icon.className = "fa-solid fa-volume-xmark";
+            }
+        }
+
+        /* ----------------------------------------------------
+         * LAUNCH & LOADING ANIMATION
+         * ---------------------------------------------------- */
+        window.addEventListener('load', () => {
+            let percent = 0;
+            const loadBar = document.getElementById('load-bar');
+            const loadPercent = document.getElementById('load-percent');
+            const loadingBox = document.getElementById('loading-box');
+            const btnStart = document.getElementById('btn-start');
+
+            const interval = setInterval(() => {
+                percent += Math.floor(Math.random() * 20) + 10;
+                if (percent >= 100) {
+                    percent = 100;
+                    clearInterval(interval);
+                    setTimeout(() => {
+                        loadingBox.classList.add('hidden');
+                        btnStart.classList.remove('hidden');
+                    }, 300);
+                }
+                loadBar.style.width = percent + '%';
+                loadPercent.innerText = percent + '%';
+            }, 90);
+        });
+
+        function startApp() {
+            initAudio();
+            playSoundSuccess();
+            document.getElementById('splash-screen').style.display = 'none';
+            initGroupingSim();
+            initAtmoSim();
+        }
+
+        /* ----------------------------------------------------
+         * TAB NAVIGATION LOGIC
+         * ---------------------------------------------------- */
+        function switchTab(tabId) {
+            playSoundClick();
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.nav-tab').forEach(el => {
+                el.classList.remove('bg-emerald-500', 'text-slate-950', 'shadow');
+                el.classList.add('text-slate-300');
+            });
+
+            document.getElementById('content-' + tabId).classList.remove('hidden');
+            const activeNav = document.getElementById('tab-' + tabId);
+            activeNav.classList.add('bg-emerald-500', 'text-slate-950', 'shadow');
+            activeNav.classList.remove('text-slate-300');
+        }
+
+        let currentSimSubTab = 'grouping';
+
+        function switchSimSubTab(subId) {
+            playSoundClick();
+            currentSimSubTab = subId;
+            document.querySelectorAll('.sim-subtab').forEach(el => {
+                el.classList.remove('bg-emerald-500', 'text-white', 'shadow');
+                el.classList.add('bg-slate-200', 'text-slate-700');
+            });
+
+            document.getElementById('sim-section-grouping').classList.add('hidden');
+            document.getElementById('sim-section-atmosfer').classList.add('hidden');
+
+            const btn = document.getElementById('subtab-' + subId);
+            btn.classList.add('bg-emerald-500', 'text-white', 'shadow');
+            btn.classList.remove('bg-slate-200', 'text-slate-700');
+
+            document.getElementById('sim-section-' + subId).classList.remove('hidden');
+        }
+
+        /* ----------------------------------------------------
+         * SIMULASI BAGIAN A: GROUPING LITOSFER & HIDROSFER
+         * ---------------------------------------------------- */
+        const groupingItemsData = [
+            { id: 'item-1', name: 'Gunung Batur', category: 'litosfer', icon: 'fa-mountain' },
+            { id: 'item-2', name: 'Danau Batur', category: 'hidrosfer', icon: 'fa-water' },
+            { id: 'item-3', name: 'Sungai Ayung', category: 'hidrosfer', icon: 'fa-water' },
+            { id: 'item-4', name: 'Lembah Hijau', category: 'litosfer', icon: 'fa-mountain-sun' },
+            { id: 'item-5', name: 'Samudra Pasifik', category: 'hidrosfer', icon: 'fa-water' },
+            { id: 'item-6', name: 'Dataran Tinggi Bedugul', category: 'litosfer', icon: 'fa-tree' },
+            { id: 'item-7', name: 'Rawa-Rawa', category: 'hidrosfer', icon: 'fa-droplet' },
+            { id: 'item-8', name: 'Bukit Terjal', category: 'litosfer', icon: 'fa-mound' }
+        ];
+
+        let selectedItemForMove = null;
+
+        function initGroupingSim() {
+            const pool = document.getElementById('item-pool');
+            const boxLitosfer = document.getElementById('box-litosfer-items');
+            const boxHidrosfer = document.getElementById('box-hidrosfer-items');
+
+            pool.innerHTML = '';
+            boxLitosfer.innerHTML = '';
+            boxHidrosfer.innerHTML = '';
+
+            // Shuffle
+            const shuffled = [...groupingItemsData].sort(() => Math.random() - 0.5);
+
+            shuffled.forEach(item => {
+                const card = document.createElement('div');
+                card.id = item.id;
+                card.draggable = true;
+                card.className = "item-card bg-slate-700 hover:bg-slate-600 border border-slate-500 text-white px-2.5 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 shadow btn-bounce";
+                card.innerHTML = `<i class="fa-solid ${item.icon} text-amber-400"></i> ${item.name}`;
+                
+                // Drag Events
+                card.ondragstart = (e) => {
+                    e.dataTransfer.setData('text/plain', item.id);
+                    selectedItemForMove = item.id;
+                };
+
+                // Click event for mobile tap-to-move
+                card.onclick = (e) => {
+                    e.stopPropagation();
+                    playSoundClick();
+                    document.querySelectorAll('.item-card').forEach(c => c.classList.remove('ring-2', 'ring-amber-400'));
+                    card.classList.add('ring-2', 'ring-amber-400');
+                    selectedItemForMove = item.id;
+                };
+
+                pool.appendChild(card);
+            });
+
+            updateGroupingCounts();
+        }
+
+        function allowDrop(e) {
+            e.preventDefault();
+            e.currentTarget.classList.add('drag-over');
+        }
+
+        function dragLeave(e) {
+            e.currentTarget.classList.remove('drag-over');
+        }
+
+        function handleDrop(e, targetCategory) {
+            e.preventDefault();
+            e.currentTarget.classList.remove('drag-over');
+            const itemId = e.dataTransfer.getData('text/plain') || selectedItemForMove;
+            moveItemToCategory(itemId, targetCategory);
+        }
+
+        function clickZoneToMove(targetCategory) {
+            if (selectedItemForMove) {
+                moveItemToCategory(selectedItemForMove, targetCategory);
+            }
+        }
+
+        function moveItemToCategory(itemId, targetCategory) {
+            const card = document.getElementById(itemId);
+            if (!card) return;
+
+            playSoundDrop();
+            card.classList.remove('ring-2', 'ring-amber-400');
+
+            if (targetCategory === 'litosfer') {
+                document.getElementById('box-litosfer-items').appendChild(card);
+            } else if (targetCategory === 'hidrosfer') {
+                document.getElementById('box-hidrosfer-items').appendChild(card);
+            }
+
+            selectedItemForMove = null;
+            updateGroupingCounts();
+        }
+
+        function updateGroupingCounts() {
+            const poolCount = document.getElementById('item-pool').children.length;
+            const litosferCount = document.getElementById('box-litosfer-items').children.length;
+            const hidrosferCount = document.getElementById('box-hidrosfer-items').children.length;
+
+            document.getElementById('grouping-count').innerHTML = `Tersisa: <b class="text-amber-400">${poolCount}</b> Benda`;
+            document.getElementById('badge-litosfer').innerText = `${litosferCount} Item`;
+            document.getElementById('badge-hidrosfer').innerText = `${hidrosferCount} Item`;
+        }
+
+        function checkGroupingResult() {
+            let correct = 0;
+            let total = groupingItemsData.length;
+
+            groupingItemsData.forEach(item => {
+                const card = document.getElementById(item.id);
+                if (card) {
+                    const parentId = card.parentElement.id;
+                    if (item.category === 'litosfer' && parentId === 'box-litosfer-items') {
+                        correct++;
+                    } else if (item.category === 'hidrosfer' && parentId === 'box-hidrosfer-items') {
+                        correct++;
+                    }
+                }
+            });
+
+            if (correct === total) {
+                playSoundSuccess();
+                alert(`Luar Biasa! Semua (${correct}/${total}) Kenampakan Alam Litosfer dan Hidrosfer Berhasil Dikelompokkan dengan Benar! 🎉`);
+            } else {
+                playSoundError();
+                alert(`Kamu berhasil mengelompokkan ${correct} dari ${total} item dengan benar. Silakan periksa kembali beberapa item yang tertukar!`);
+            }
+        }
+
+        function resetGroupingSim() {
+            playSoundReset();
+            selectedItemForMove = null;
+            initGroupingSim();
+        }
+
+        /* ----------------------------------------------------
+         * SIMULASI BAGIAN B: MENGURUTKAN LAPISAN ATMOSFER
+         * ---------------------------------------------------- */
+        const atmoLayersData = [
+            { level: 1, name: 'Troposfer', desc: 'Suhu dingin, tempat fenomena cuaca' },
+            { level: 2, name: 'Stratosfer', desc: 'Jalur pesawat & Lapisan Ozon' },
+            { level: 3, name: 'Mesosfer', desc: 'Pelindung dari jatuhnya meteor' },
+            { level: 4, name: 'Termosfer', desc: 'Lapisan fenomena Aurora' },
+            { level: 5, name: 'Eksosfer', desc: 'Batas luar angkasa hampa udara' }
+        ];
+
+        let currentSelectedAtmoLayer = null;
+        let slotUserAnswers = { 1: null, 2: null, 3: null, 4: null, 5: null };
+
+        function initAtmoSim() {
+            const container = document.getElementById('atmo-options-container');
+            container.innerHTML = '';
+
+            // Shuffle options
+            const shuffled = [...atmoLayersData].sort(() => Math.random() - 0.5);
+
+            shuffled.forEach(layer => {
+                const btn = document.createElement('button');
+                btn.id = 'atmo-btn-' + layer.name;
+                btn.className = "w-full p-2.5 bg-slate-700 hover:bg-slate-600 text-white rounded-xl text-xs font-bold flex items-center justify-between border border-slate-600 transition btn-bounce";
+                btn.innerHTML = `<span><i class="fa-solid fa-cloud text-sky-400"></i> ${layer.name}</span> <span class="text-[10px] text-slate-400 font-normal">${layer.desc}</span>`;
+                btn.onclick = () => selectAtmoOption(layer.name);
+                container.appendChild(btn);
+            });
+
+            for (let i = 1; i <= 5; i++) {
+                slotUserAnswers[i] = null;
+                document.getElementById(`slot-content-${i}`).innerText = "Kosong";
+                document.getElementById(`slot-content-${i}`).className = "slot-target font-bold text-slate-400 bg-slate-800 px-3 py-1 rounded border border-slate-700 min-w-[140px] text-center";
+            }
+        }
+
+        function selectAtmoOption(layerName) {
+            playSoundClick();
+            currentSelectedAtmoLayer = layerName;
+
+            document.querySelectorAll('#atmo-options-container button').forEach(b => b.classList.remove('ring-2', 'ring-amber-400'));
+            document.getElementById('atmo-btn-' + layerName).classList.add('ring-2', 'ring-amber-400');
+        }
+
+        function selectSlotForAtmo(slotNum) {
+            if (!currentSelectedAtmoLayer) {
+                alert("Pilih salah satu nama Lapisan Atmosfer di kolom sebelah kanan terlebih dahulu!");
+                return;
+            }
+
+            playSoundDrop();
+            slotUserAnswers[slotNum] = currentSelectedAtmoLayer;
+
+            const slotEl = document.getElementById(`slot-content-${slotNum}`);
+            slotEl.innerText = currentSelectedAtmoLayer;
+            slotEl.className = "slot-target font-extrabold text-amber-300 bg-slate-800 px-3 py-1 rounded border border-amber-500/80 min-w-[140px] text-center shadow";
+
+            // Unhighlight
+            document.querySelectorAll('#atmo-options-container button').forEach(b => b.classList.remove('ring-2', 'ring-amber-400'));
+            currentSelectedAtmoLayer = null;
+        }
+
+        function checkAtmoResult() {
+            let correctCount = 0;
+
+            atmoLayersData.forEach(item => {
+                if (slotUserAnswers[item.level] === item.name) {
+                    correctCount++;
+                }
+            });
+
+            if (correctCount === 5) {
+                playSoundSuccess();
+                alert("Hebat Sekali! Urutan 5 Lapisan Atmosfer Bumi yang Kamu Susun 100% Tepat! 🌟");
+            } else {
+                playSoundError();
+                alert(`Kamu mendapatkan ${correctCount} dari 5 urutan lapisan yang benar. Ingat: Troposfer paling bawah, Eksosfer paling atas!`);
+            }
+        }
+
+        function resetAtmoSim() {
+            playSoundReset();
+            currentSelectedAtmoLayer = null;
+            initAtmoSim();
+        }
+
+        /* ----------------------------------------------------
+         * LKPD EVALUATION LOGIC
+         * ---------------------------------------------------- */
+        function checkLKPDAnswer() {
+            const answers = { q1: 'B', q2: 'B', q3: 'A', q4: 'B' };
+            let score = 0;
+            const form = document.getElementById('lkpd-form');
+
+            for (let key in answers) {
+                const selected = form.elements[key].value;
+                if (selected === answers[key]) {
+                    score += 25;
+                }
+            }
+
+            const scoreBadge = document.getElementById('score-badge');
+            const scoreVal = document.getElementById('score-val');
+            scoreBadge.classList.remove('hidden');
+            scoreVal.innerText = score;
+
+            if (score >= 75) {
+                playSoundSuccess();
+                alert(`Selamat! Nilai LKPD Kamu: ${score}/100. Pemahaman materi Bumi kamu luar biasa!`);
+            } else {
+                playSoundError();
+                alert(`Nilai Kamu: ${score}/100. Pelajari kembali materi pada tab Teori dan ulangi simulasi ya!`);
+            }
+        }
+
+        function resetLKPD() {
+            playSoundReset();
+            document.getElementById('lkpd-form').reset();
+            document.getElementById('score-badge').classList.add('hidden');
+        }
+    </script>
+</body>
+</html>
